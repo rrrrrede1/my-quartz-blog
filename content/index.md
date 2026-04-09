@@ -1,3 +1,7 @@
+---
+title: InfiniteBlack 's Blog
+---
+
 你好，这里是`InfiniteBlack`的博客
 使用[Cloudflare Pages](https://pages.cloudflare.com/) + [Quartz v4](https://quartz.jzhao.xyz/)创建
 

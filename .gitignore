@@ -9,3 +9,12 @@ tsconfig.tsbuildinfo
 private/
 .replit
 replit.nix
+
+# --- Obsidian 特定忽略项 ---
+# 忽略 content 文件夹下的 Obsidian 配置
+content/.obsidian/
+# 忽略 Obsidian 的回收站
+content/.trash/
+# 忽略 Obsidian 的工作区布局（避免不同设备同步冲突）
+content/workspace.json
+

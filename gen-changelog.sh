@@ -14,7 +14,15 @@ comments: false
 
 EOF
 
+# 如果是浅克隆，则拉取完整历史
+if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+  echo "Shallow repository detected. Fetching full history..."
+  git fetch --unshallow
+fi
+
 # 提取 commit
-git log --author="rrrrrede1" --no-merges -n 20 --pretty=format:"- [%ad] %s" --date=format:'%Y-%m-%d' >>content/changelog.md
+#git log --author="rrrrrede1" --no-merges -n 20 --pretty=format:"- [%ad] %s" --date=format:'%Y-%m-%d' >>content/changelog.md
+# 包含 小时:分钟
+git log --author="rrrrrede1" --no-merges -n 20 --pretty=format:"- [%ad] %s" --date=format:'%Y-%m-%d %H:%M' >>content/changelog.md
 
 echo "Changelog generated successfully."

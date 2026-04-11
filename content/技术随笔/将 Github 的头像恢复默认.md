@@ -1,9 +1,11 @@
 ---
+slug: 7e9603
 tags:
-  - github
-  - tutorial
+- github
+- tutorial
 ---
-  > 突然想把 github 的头像恢复默认，于是询问了 gemini
+
+> 突然想把 github 的头像恢复默认，于是询问了 gemini
   
   要将 GitHub 的自定义头像恢复为系统随机生成的默认头像（Identicons），你可以通过以下方式实现：
 

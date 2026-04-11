@@ -13,7 +13,6 @@ A：
 不知道写什么了，之后大概会把我自己Obsidian仓库的一些~~90%AI生成的~~踩坑笔记挂上来  
 
 [[这个博客是怎么创建的]]  
-[[关于我]]  
-[[友情链接]]  
-[[changelog]]  
-[[License]]  
+
+
+[[aboutme]] - [[friendlink]] - [[changelog]] - [[License]]  

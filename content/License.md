@@ -13,5 +13,4 @@ title: 版权声明
 * **相同方式共享 (ShareAlike)**：如果您再混合、转换、或者基于本站内容进行创作，您必须基于与原先许可协议相同的许可协议分发您贡献的作品
 
 
-**转载请注明出处：** `[InfiniteBlack](https://szpu.ac.cn/)`
-
+**转载请注明出处：** `[InfiniteBlack](https://infiniteblack.dev/)`

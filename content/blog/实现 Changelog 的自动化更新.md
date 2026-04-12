@@ -1,6 +1,7 @@
 ---
 tags:
-- tutorial
+  - tutorial
+  - blog
 ---
 
 > 想法：将笔记 repo 里面的 commit 记录以某种方式放到博客的更新记录页面上，并且在每次 commit 自动更新

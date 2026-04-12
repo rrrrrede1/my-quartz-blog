@@ -1,45 +1,52 @@
 import os
 import hashlib
-import frontmatter # 需要 pip install python-frontmatter
+import frontmatter # pip install python-frontmatter
 
 # --- 配置 ---
 CONTENT_DIR = "content"
 # 排除不需要处理的文件
 EXCLUDE_FILES = ["index.md", "changelog.md", "License.md", "friendlink.md", "aboutme.md"]
 
-def get_short_hash(text):
-    """生成 6 位短哈希"""
+def get_hash(text):
     return hashlib.md5(text.encode()).hexdigest()[:6]
 
-def process_notes():
+def safe_rename():
     for root, dirs, files in os.walk(CONTENT_DIR):
         for file in files:
-            if file.endswith(".md") and file not in EXCLUDE_FILES:
-                file_path = os.path.join(root, file)
+            if file.endswith(".md") and file not in EXCLUDE:
+                old_path = os.path.join(root, file)
+                original_title = os.path.splitext(file)[0]
+                
+                # 如果已经是哈希（6位16进制），跳过
+                if len(original_title) == 6 and all(c in '0123456789abcdef' for c in original_title):
+                    continue
                 
                 try:
-                    # 解析笔记（自动处理 YAML 和 正文）
-                    post = frontmatter.load(file_path)
+                    # 加载笔记
+                    post = frontmatter.load(old_path)
                     
-                    # 检查是否已经存在 slug
-                    if 'slug' not in post.metadata:
-                        # 基于文件名生成唯一 ID
-                        file_name_stem = os.path.splitext(file)[0]
-                        short_id = get_short_hash(file_name_stem)
-                        
-                        # 插入新 slug，同时保留原有的 title 等 metadata
-                        post.metadata['slug'] = short_id
-                        
-                        # 写回文件
-                        with open(file_path, 'w', encoding='utf-8') as f:
-                            f.write(frontmatter.dumps(post))
-                        
-                        print(f"Generated slug [{short_id}] for: {file}")
-                    else:
-                        print(f"Skipped (slug exists): {file}")
-                        
+                    # 1. 把中文文件名存入 YAML 的 title，确保网页显示正常
+                    if 'title' not in post.metadata:
+                        post.metadata['title'] = original_title
+                    
+                    # 2. 生成新文件名
+                    new_filename = get_hash(original_title) + ".md"
+                    new_path = os.path.join(root, new_filename)
+                    
+                    # 3. 如果新文件名已存在（极低概率碰撞），加个后缀
+                    if os.path.exists(new_path):
+                        new_filename = get_hash(original_title + "_alt") + ".md"
+                        new_path = os.path.join(root, new_filename)
+
+                    # 4. 写回并更名
+                    with open(old_path, 'w', encoding='utf-8') as f:
+                        f.write(frontmatter.dumps(post))
+                    
+                    os.rename(old_path, new_path)
+                    print(f"✅ 重命名成功: {original_title} -> {new_filename}")
+                    
                 except Exception as e:
-                    print(f"Error processing {file}: {e}")
+                    print(f"❌ 处理 {file} 失败: {e}")
 
 if __name__ == "__main__":
-    process_notes()
+    safe_rename()

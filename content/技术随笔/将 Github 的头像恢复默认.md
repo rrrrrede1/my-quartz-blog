@@ -1,5 +1,4 @@
 ---
-slug: 7e9603
 tags:
 - github
 - tutorial

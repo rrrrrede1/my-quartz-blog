@@ -1,5 +1,4 @@
 ---
-slug: df0251
 tags:
 - tutorial
 ---

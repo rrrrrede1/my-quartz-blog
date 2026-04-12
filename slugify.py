@@ -13,7 +13,7 @@ def get_hash(text):
 def safe_rename():
     for root, dirs, files in os.walk(CONTENT_DIR):
         for file in files:
-            if file.endswith(".md") and file not in EXCLUDE:
+            if file.endswith(".md") and file not in EXCLUDE_FILES:
                 old_path = os.path.join(root, file)
                 original_title = os.path.splitext(file)[0]
                 

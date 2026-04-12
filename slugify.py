@@ -13,53 +13,53 @@ def get_hash(text):
 def safe_rename():
     for root, dirs, files in os.walk(CONTENT_DIR):
         for file in files:
+            # 排除非 md 文件和排除列表中的文件
             if file.endswith(".md") and file not in EXCLUDE_FILES:
                 old_path = os.path.join(root, file)
                 original_title = os.path.splitext(file)[0]
                 
-                # 检查是否已经是处于根目录且为6位哈希
-                is_hashed = len(original_title) == 6 and all(c in '0123456789abcdef' for c in original_title)
-                is_at_root = root == CONTENT_DIR
-                
-                if is_hashed and is_at_root:
+                # 如果文件名已经是 6 位哈希，说明已经处理过，跳过
+                if len(original_title) == 6 and all(c in '0123456789abcdef' for c in original_title):
                     continue
                 
                 try:
-                    # 加载笔记
+                    # 加载笔记内容和元数据
                     post = frontmatter.load(old_path)
                     
-                    # 1. 确保中文标题保留在 YAML
+                    # 1. 确保原始中文名作为 title 保留，解决网页显示问题
                     if 'title' not in post.metadata:
                         post.metadata['title'] = original_title
                     
-                    # 2. 将原中文名加入 aliases，修复 Quartz 双链 404
-                    if 'aliases' not in post.metadata:
-                        post.metadata['aliases'] = [original_title]
-                    else:
-                        # 确保 aliases 是列表且不重复添加
-                        if not isinstance(post.metadata['aliases'], list):
-                            post.metadata['aliases'] = [post.metadata['aliases']]
-                        if original_title not in post.metadata['aliases']:
-                            post.metadata['aliases'].append(original_title)
+                    # 2. 核心：将原始中文名加入 aliases，修复 Quartz 双链 404
+                    current_aliases = post.metadata.get('aliases', [])
                     
-                    # 3. 生成新文件名并强制移动到 CONTENT_DIR 根目录（实现扁平化）
+                    # 统一转为列表处理
+                    if isinstance(current_aliases, str):
+                        current_aliases = [current_aliases]
+                    elif not isinstance(current_aliases, list):
+                        current_aliases = []
+
+                    if original_title not in current_aliases:
+                        current_aliases.append(original_title)
+                    
+                    post.metadata['aliases'] = current_aliases
+                    
+                    # 3. 生成新文件名（保持在原目录）
                     new_filename = get_hash(original_title) + ".md"
-                    new_path = os.path.join(CONTENT_DIR, new_filename)
+                    new_path = os.path.join(root, new_filename)
                     
-                    # 如果发生碰撞（极低概率），加后缀
+                    # 碰撞处理
                     if os.path.exists(new_path) and old_path != new_path:
                         new_filename = get_hash(original_title + "_alt") + ".md"
-                        new_path = os.path.join(CONTENT_DIR, new_filename)
+                        new_path = os.path.join(root, new_filename)
 
-                    # 4. 先写回更新后的元数据
+                    # 4. 写回更新后的 YAML
                     with open(old_path, 'w', encoding='utf-8') as f:
                         f.write(frontmatter.dumps(post))
                     
-                    # 5. 执行移动和重命名
-                    # 如果文件已经在根目录且名字没变，就不操作
-                    if old_path != new_path:
-                        os.rename(old_path, new_path)
-                        print(f"✅ 处理成功: {file} -> {new_filename} (已移至根目录并添加别名)")
+                    # 5. 执行原地重命名
+                    os.rename(old_path, new_path)
+                    print(f"✅ 处理成功: {original_title} -> {new_filename} (已注入别名)")
                     
                 except Exception as e:
                     print(f"❌ 处理 {file} 失败: {e}")

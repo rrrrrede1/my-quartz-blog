@@ -17,33 +17,49 @@ def safe_rename():
                 old_path = os.path.join(root, file)
                 original_title = os.path.splitext(file)[0]
                 
-                # 如果已经是哈希（6位16进制），跳过
-                if len(original_title) == 6 and all(c in '0123456789abcdef' for c in original_title):
+                # 检查是否已经是处于根目录且为6位哈希
+                is_hashed = len(original_title) == 6 and all(c in '0123456789abcdef' for c in original_title)
+                is_at_root = root == CONTENT_DIR
+                
+                if is_hashed and is_at_root:
                     continue
                 
                 try:
                     # 加载笔记
                     post = frontmatter.load(old_path)
                     
-                    # 1. 把中文文件名存入 YAML 的 title，确保网页显示正常
+                    # 1. 确保中文标题保留在 YAML
                     if 'title' not in post.metadata:
                         post.metadata['title'] = original_title
                     
-                    # 2. 生成新文件名
-                    new_filename = get_hash(original_title) + ".md"
-                    new_path = os.path.join(root, new_filename)
+                    # 2. 将原中文名加入 aliases，修复 Quartz 双链 404
+                    if 'aliases' not in post.metadata:
+                        post.metadata['aliases'] = [original_title]
+                    else:
+                        # 确保 aliases 是列表且不重复添加
+                        if not isinstance(post.metadata['aliases'], list):
+                            post.metadata['aliases'] = [post.metadata['aliases']]
+                        if original_title not in post.metadata['aliases']:
+                            post.metadata['aliases'].append(original_title)
                     
-                    # 3. 如果新文件名已存在（极低概率碰撞），加个后缀
-                    if os.path.exists(new_path):
+                    # 3. 生成新文件名并强制移动到 CONTENT_DIR 根目录（实现扁平化）
+                    new_filename = get_hash(original_title) + ".md"
+                    new_path = os.path.join(CONTENT_DIR, new_filename)
+                    
+                    # 如果发生碰撞（极低概率），加后缀
+                    if os.path.exists(new_path) and old_path != new_path:
                         new_filename = get_hash(original_title + "_alt") + ".md"
-                        new_path = os.path.join(root, new_filename)
+                        new_path = os.path.join(CONTENT_DIR, new_filename)
 
-                    # 4. 写回并更名
+                    # 4. 先写回更新后的元数据
                     with open(old_path, 'w', encoding='utf-8') as f:
                         f.write(frontmatter.dumps(post))
                     
-                    os.rename(old_path, new_path)
-                    print(f"✅ 重命名成功: {original_title} -> {new_filename}")
+                    # 5. 执行移动和重命名
+                    # 如果文件已经在根目录且名字没变，就不操作
+                    if old_path != new_path:
+                        os.rename(old_path, new_path)
+                        print(f"✅ 处理成功: {file} -> {new_filename} (已移至根目录并添加别名)")
                     
                 except Exception as e:
                     print(f"❌ 处理 {file} 失败: {e}")
